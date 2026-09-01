@@ -1,131 +1,129 @@
-# Case Study — Ciclo de Vida de Recurso em Integração Assíncrona
+# Case Study — External Resource Lifecycle in an Asynchronous Integration
 
-> **Confidencialidade:** case recriado e fortemente abstraído a partir de uma especificação profissional. Nomes de órgãos, sistemas, APIs, tabelas, documentos, códigos de situação, payloads e identificadores foram deliberadamente removidos ou modificados.
+> **Confidentiality note:** this case is an anonymized and abstracted version of a specification developed in a real professional context. Names of systems, organizations, entities, identifiers, roles, integrations, API contracts, endpoints, routes, database structures and objects, payloads, documents, values, status codes, paths, personal data, and other technical or operational details were removed, changed, or generalized to preserve confidentiality. No code, data, contract, physical structure, or infrastructure detail from the original environment is reproduced. The requirements analysis logic, specification patterns, functional decisions, and concepts required to demonstrate the professional approach were preserved.
 
-## 1. Problema
+## 1. Problem
 
-Uma aplicação corporativa precisava controlar a ativação e desativação de um recurso mantido também em uma plataforma externa. A operação externa era assíncrona: receber HTTP de sucesso significava apenas que a solicitação havia sido aceita, e não que a mudança de estado estava concluída.
+A corporate application needed to control activation and deactivation of a resource also maintained in an external platform. The external operation was asynchronous: receiving a successful HTTP response meant only that the request had been accepted, not that the state change had been completed.
 
-Além disso, uma das operações dependia de uma validação documental prévia, enquanto a operação inversa não possuía essa dependência. Era necessário impedir novos comandos durante processamento pendente e preservar a última situação efetivamente confirmada.
+In addition, one operation depended on prior evidence validation while the reverse operation did not. New commands had to be blocked while processing was pending, and the latest actually confirmed state had to be preserved.
 
-## 2. História de usuário
+## 2. User story
 
-**COMO** usuário responsável pela gestão do recurso  
-**QUERO** solicitar sua desativação ou reativação e consultar posteriormente o processamento  
-**PARA** manter a situação local alinhada à plataforma externa com rastreabilidade e sem antecipar estados ainda não confirmados.
+**AS** a user responsible for managing the resource  
+**I WANT** to request its deactivation or reactivation and later query the processing result  
+**SO THAT** the local state remains aligned with the external platform, with traceability and without anticipating unconfirmed states.
 
-## 3. Matriz de decisão
+## 3. Decision matrix
 
-| Estado confirmado | Pré-condição adicional | Ação disponível |
+| Confirmed state | Additional precondition | Available action |
 |---|---|---|
-| Ativo | Evidência não validada | Nenhuma |
-| Ativo | Evidência validada | Solicitar desativação |
-| Inativo | Não se aplica | Solicitar reativação |
-| Solicitação pendente | Não se aplica | Consultar processamento |
+| Active | Evidence not validated | None |
+| Active | Evidence validated | Request deactivation |
+| Inactive | Not applicable | Request reactivation |
+| Request pending | Not applicable | Query processing |
 
-## 4. Regra fundamental: aceite não é conclusão
+## 4. Fundamental rule: acceptance is not completion
 
-O retorno de sucesso do comando externo representa apenas **aceite para processamento**.
-
-Portanto:
+A successful command response represents only **acceptance for processing**.
 
 ```text
-HTTP de sucesso
+Successful HTTP response
       ↓
-Solicitação aceita
+Request accepted
       ↓
-Estado = Aguardando processamento
+State = Waiting for processing
       ↓
-Consulta posterior
+Later query
       ↓
-Estado externo confirmado
+External state confirmed
       ↓
-Atualização do estado local confirmado
+Update confirmed local state
 ```
 
-A aplicação não deve trocar antecipadamente `Ativo` por `Inativo`, ou vice-versa, apenas porque o comando foi aceito.
+The application must not prematurely change `Active` to `Inactive`, or vice versa, merely because the command was accepted.
 
-## 5. Regras de negócio
+## 5. Business rules
 
-### RN01 — Último estado confirmado é a referência
-A interface e as ações disponíveis devem considerar a situação efetivamente confirmada mais recente, e não uma mudança ainda pendente.
+### BR01 — Latest confirmed state is the reference
+The interface and available actions must use the latest actually confirmed state rather than a change that is still pending.
 
-### RN02 — Pré-condições assimétricas
-A desativação exige evidência previamente validada. A reativação não depende dessa mesma evidência. As duas operações não devem ser tratadas como simples inversões técnicas.
+### BR02 — Asymmetric preconditions
+Deactivation requires previously validated evidence. Reactivation does not depend on that same evidence. The two operations must not be treated as simple technical inverses.
 
-### RN03 — Solicitação pendente bloqueia novo comando
-Enquanto uma mudança estiver aguardando processamento, não deve ser permitido reenviar a mesma operação nem iniciar uma operação incompatível.
+### BR03 — Pending request blocks new commands
+While a state change is waiting for processing, the same operation must not be resent and incompatible operations must not be started.
 
-### RN04 — Consulta permanece disponível
-Enquanto o processamento estiver pendente, o usuário pode consultar novamente a plataforma externa para obter a situação atual.
+### BR04 — Query remains available
+While processing is pending, the user may query the external platform again for the current state.
 
-### RN05 — Falha de consulta preserva estado confirmado
-Ausência do recurso no retorno, timeout, falha HTTP ou resposta sem situação não autorizam mudança do estado confirmado. A tentativa é registrada, mas o estado anterior é preservado.
+### BR05 — Query failure preserves confirmed state
+Missing resource in the response, timeout, HTTP failure, or response without a valid status must not change the confirmed state. The attempt is recorded while the previous state is preserved.
 
-### RN06 — Mudança somente após confirmação externa
-A interface deve atualizar o estado operacional somente quando a consulta retornar uma situação reconhecida e conclusiva.
+### BR06 — Change only after external confirmation
+The interface must update the operational state only when the query returns a recognized and conclusive state.
 
-### RN07 — Rastreabilidade das operações
-Solicitações e consultas devem produzir evidência suficiente para reconstruir o ciclo: comando enviado, aceite, identificador de correlação, consultas e estado confirmado.
+### BR07 — Operation traceability
+Requests and queries must provide enough evidence to reconstruct the lifecycle: command sent, acceptance, correlation identifier, later queries, and confirmed state.
 
-### RN08 — Separação entre estado confirmado e estado da solicitação
-O domínio deve distinguir `estado do recurso` de `estado do processamento da solicitação`. Um recurso pode continuar confirmado como ativo enquanto uma solicitação de desativação está pendente.
+### BR08 — Separate confirmed resource state from request state
+The domain must distinguish `resource state` from `request processing state`. A resource can remain confirmed as active while a deactivation request is pending.
 
-## 6. Modelo conceitual de estados
+## 6. Conceptual state model
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Ativo
-    Ativo --> DesativacaoPendente: solicitar desativação
-    DesativacaoPendente --> DesativacaoPendente: consulta ainda pendente
-    DesativacaoPendente --> Inativo: confirmação externa
-    DesativacaoPendente --> Ativo: falha/rejeição sem mudança confirmada
-    Inativo --> ReativacaoPendente: solicitar reativação
-    ReativacaoPendente --> ReativacaoPendente: consulta ainda pendente
-    ReativacaoPendente --> Ativo: confirmação externa
-    ReativacaoPendente --> Inativo: falha/rejeição sem mudança confirmada
+    [*] --> Active
+    Active --> DeactivationPending: request deactivation
+    DeactivationPending --> DeactivationPending: still pending
+    DeactivationPending --> Inactive: external confirmation
+    DeactivationPending --> Active: failure/rejection without confirmed change
+    Inactive --> ReactivationPending: request reactivation
+    ReactivationPending --> ReactivationPending: still pending
+    ReactivationPending --> Active: external confirmation
+    ReactivationPending --> Inactive: failure/rejection without confirmed change
 ```
 
-## 7. Tratamento de retorno
+## 7. Response handling
 
-**Comando aceito:** registrar a solicitação como pendente e disponibilizar consulta posterior.
+**Command accepted:** record the request as pending and make a later query available.
 
-**Consulta confirma novo estado:** registrar a confirmação e atualizar a interface.
+**Query confirms new state:** record the confirmation and update the interface.
 
-**Consulta informa que o estado ainda não mudou:** manter processamento pendente quando aplicável.
+**Query shows the state has not changed yet:** keep processing pending when applicable.
 
-**Falha técnica ou retorno inconclusivo:** registrar a tentativa e preservar o último estado confirmado.
+**Technical failure or inconclusive response:** record the attempt and preserve the last confirmed state.
 
-## 8. Critérios de aceitação selecionados
+## 8. Selected acceptance criteria
 
-- Recurso ativo sem pré-condição válida não deve permitir desativação.
-- Recurso ativo com pré-condição válida deve permitir solicitação de desativação.
-- Recurso inativo deve permitir reativação sem exigir a mesma pré-condição documental.
-- O aceite da solicitação não deve alterar antecipadamente o estado confirmado.
-- Enquanto houver processamento pendente, novo comando deve permanecer bloqueado.
-- Deve existir ação específica para consultar o processamento pendente.
-- Uma consulta inconclusiva deve preservar o último estado confirmado.
-- Somente situação conclusiva reconhecida deve atualizar o estado operacional.
-- Solicitações e consultas devem manter rastreabilidade suficiente para auditoria.
+- An active resource without a valid precondition must not allow deactivation.
+- An active resource with a valid precondition must allow a deactivation request.
+- An inactive resource must allow reactivation without requiring the same documentary precondition.
+- Request acceptance must not prematurely change the confirmed state.
+- While processing is pending, new commands must remain blocked.
+- A specific action must exist to query pending processing.
+- An inconclusive query must preserve the last confirmed state.
+- Only a recognized conclusive state may update the operational state.
+- Requests and queries must maintain enough traceability for audit purposes.
 
-## 9. Decisões e trade-offs
+## 9. Decisions and trade-offs
 
-**Dois estados em vez de um:** separar situação do recurso e situação da solicitação elimina ambiguidades comuns em integrações assíncronas.
+**Two states instead of one:** separating resource state from request state removes ambiguity common in asynchronous integrations.
 
-**Consulta manual/controlada:** evita polling automático agressivo quando não há requisito que justifique consumo contínuo do serviço externo.
+**Manual/controlled queries:** avoids aggressive automatic polling when continuous service consumption is not justified by the requirement.
 
-**Estado confirmado prevalece sobre intenção:** o sistema registra que existe uma mudança solicitada, mas não apresenta essa intenção como fato consumado.
+**Confirmed state takes precedence over intent:** the system records that a change was requested, but does not present that intention as a completed fact.
 
-**Pré-condições por operação:** regras de negócio são modeladas explicitamente para cada transição, evitando assumir simetria onde ela não existe.
+**Operation-specific preconditions:** business rules are explicitly modeled for each transition instead of assuming symmetry where none exists.
 
-## 10. Competências demonstradas
+## 10. Skills demonstrated
 
-- modelagem de ciclo de vida;
-- integrações assíncronas;
-- máquina de estados;
-- matriz de decisão;
-- tratamento de pré-condições;
-- correlação e auditoria;
-- prevenção de comandos duplicados;
-- tratamento de timeout e respostas inconclusivas;
-- separação entre intenção, processamento e estado confirmado.
+- lifecycle modeling;
+- asynchronous integrations;
+- state machines;
+- decision matrices;
+- precondition handling;
+- correlation and auditing;
+- duplicate-command prevention;
+- timeout and inconclusive-response handling;
+- separation of intent, processing, and confirmed state.
