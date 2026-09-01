@@ -1,126 +1,126 @@
-# Case Study — Controle de Concorrência em Processamento de Arquivos
+# Case Study — Concurrency Control in File Processing
 
-> **Nota de confidencialidade:** este case é uma versão anonimizada e abstraída de uma especificação elaborada em contexto profissional real. Nomes de sistemas, órgãos, entidades, identificadores, perfis, integrações, contratos de API, endpoints, rotas, estruturas e objetos de banco de dados, payloads, documentos, valores, códigos de situação, caminhos, dados pessoais e demais detalhes técnicos ou operacionais foram removidos, alterados ou generalizados para preservar a confidencialidade. Nenhum código, dado, contrato, estrutura física ou detalhe de infraestrutura do ambiente original é reproduzido. A lógica de análise de requisitos, os padrões de especificação, as decisões funcionais e os conceitos necessários para demonstrar a abordagem profissional foram preservados.
+> **Confidentiality note:** this case is an anonymized and abstracted version of a specification developed in a real professional context. Names of systems, organizations, entities, identifiers, roles, integrations, API contracts, endpoints, routes, database structures and objects, payloads, documents, values, status codes, paths, personal data, and other technical or operational details were removed, changed, or generalized to preserve confidentiality. No code, data, contract, physical structure, or infrastructure detail from the original environment is reproduced. The requirements analysis logic, specification patterns, functional decisions, and concepts required to demonstrate the professional approach were preserved.
 
-## 1. Problema
+## 1. Problem
 
-Uma aplicação corporativa permitia o carregamento de arquivos para processamento em lote. Era necessário impedir que uma nova carga fosse iniciada enquanto outra permanecesse pendente, além de permitir acompanhamento do progresso e preservar o resultado individual de cada item.
+A corporate application allowed files to be uploaded for batch processing. It was necessary to prevent a new batch from starting while another remained pending, while also providing progress tracking and preserving the individual outcome of each item.
 
-O ponto crítico era evitar uma falsa sensação de segurança baseada apenas na interface: dois usuários poderiam acessar a funcionalidade em momentos próximos e tentar iniciar cargas concorrentes.
+The critical point was avoiding a false sense of safety based only on the interface: two users could access the feature at nearly the same time and attempt to start concurrent batches.
 
-## 2. História de usuário
+## 2. User story
 
-**COMO** usuário responsável pelo processamento de arquivos  
-**QUERO** que o sistema verifique cargas pendentes antes de aceitar um novo arquivo e permita acompanhar a execução existente  
-**PARA** evitar processamento simultâneo ou duplicado e manter rastreabilidade do resultado de cada item.
+**AS** a user responsible for file processing  
+**I WANT** the system to check for pending batches before accepting a new file and allow me to track the existing execution  
+**SO THAT** simultaneous or duplicate processing is prevented and each item's result remains traceable.
 
-## 3. Regras de negócio
+## 3. Business rules
 
-### RN01 — Prioridade da carga existente
-Enquanto existir carga pendente ou em processamento, uma nova carga não deve ser aceita.
+### BR01 — Existing batch takes priority
+While a batch is pending or processing, a new batch must not be accepted.
 
-### RN02 — Ausência confirmada
-Uma nova carga somente pode ser liberada quando o backend confirmar que não existe processamento pendente.
+### BR02 — Confirmed availability
+A new batch may be released only when the backend confirms that no pending processing exists.
 
-### RN03 — Fail closed
-Se a aplicação não conseguir confirmar o estado atual por falha de consulta, o novo carregamento deve permanecer bloqueado. Uma falha técnica não pode ser interpretada como ausência de pendência.
+### BR03 — Fail closed
+If the application cannot confirm the current state because of a query failure, new uploads must remain blocked. A technical failure must not be interpreted as absence of pending work.
 
-### RN04 — Dupla validação
-A situação deve ser verificada ao entrar na funcionalidade e novamente no momento efetivo do upload.
+### BR04 — Double validation
+The state must be checked when the feature is opened and again at the actual upload moment.
 
-### RN05 — Validação visual não substitui validação transacional
-A tela pode informar disponibilidade, mas a decisão final deve ser tomada novamente pelo backend imediatamente antes da operação.
+### BR05 — Visual validation does not replace transactional validation
+The UI may display availability, but the final decision must be made again by the backend immediately before the operation.
 
-### RN06 — Processamento independente por item
-Falha em determinado item não deve interromper automaticamente os demais itens elegíveis da carga.
+### BR06 — Independent processing per item
+Failure in one item must not automatically stop other eligible items in the batch.
 
-### RN07 — Progresso baseado em estados finais
-A quantidade processada é formada pelos itens que atingiram situação final, independentemente de sucesso ou erro.
+### BR07 — Progress based on final states
+The processed count is composed of items that reached a final state, regardless of success or error.
 
-### RN08 — Conclusão da carga
-Uma carga somente é concluída quando não existirem itens pendentes ou em processamento.
+### BR08 — Batch completion
+A batch is complete only when no items remain pending or processing.
 
-### RN09 — Fechamento da interface não cancela o backend
-Caso a interface de acompanhamento possa ser fechada, isso não deve cancelar uma execução já iniciada.
+### BR09 — Closing the interface does not cancel backend work
+If the progress interface can be closed, doing so must not cancel an execution already started.
 
-### RN10 — Extração representa o estado atual
-A exportação deve refletir o resultado individual mais recente dos itens da carga selecionada.
+### BR10 — Export reflects current state
+The export must represent the latest individual outcome of items in the selected batch.
 
-## 4. Fluxo de prevenção de concorrência
+## 4. Concurrency-prevention flow
 
 ```mermaid
 flowchart TD
-    A[Acessar funcionalidade] --> B[Consultar cargas pendentes]
-    B --> C{Consulta bem-sucedida?}
-    C -- Não --> D[Bloquear nova carga]
-    C -- Sim --> E{Existe carga pendente?}
-    E -- Sim --> F[Direcionar para acompanhamento]
-    E -- Não --> G[Liberar seleção de arquivo]
-    G --> H[Usuário solicita upload]
-    H --> I[Revalidar pendência no backend]
-    I --> J{Continua livre?}
-    J -- Não --> F
-    J -- Sim --> K[Registrar e iniciar carga]
+    A[Open feature] --> B[Query pending batches]
+    B --> C{Query succeeded?}
+    C -- No --> D[Block new batch]
+    C -- Yes --> E{Pending batch exists?}
+    E -- Yes --> F[Redirect to tracking]
+    E -- No --> G[Allow file selection]
+    G --> H[User requests upload]
+    H --> I[Revalidate pending state in backend]
+    I --> J{Still available?}
+    J -- No --> F
+    J -- Yes --> K[Register and start batch]
 ```
 
-## 5. Acompanhamento
+## 5. Progress tracking
 
-Durante a execução, a interface pode apresentar:
+During execution, the interface may display:
 
 ```text
-Processando 37 de 120
+Processing 37 of 120
 
-Pendente: 74
-Em processamento: 9
-Sucesso: 34
-Erro: 3
+Pending: 74
+Processing: 9
+Success: 34
+Error: 3
 ```
 
-O progresso não deve depender apenas do navegador. Os quantitativos são derivados do estado persistido do processamento.
+Progress must not depend only on the browser. Counts are derived from the persisted processing state.
 
-## 6. Tratamento de falhas
+## 6. Failure handling
 
-Uma falha individual deve:
+An individual failure must:
 
-- marcar o item com o resultado correspondente;
-- preservar sua mensagem de erro quando disponível;
-- permitir a continuidade dos demais itens;
-- participar do total de itens concluídos;
-- permanecer disponível para análise e exportação.
+- mark the item with the corresponding outcome;
+- preserve its error message when available;
+- allow the remaining items to continue;
+- count as a completed item;
+- remain available for analysis and export.
 
-Uma falha ao verificar se existe processamento pendente deve ter comportamento conservador: bloquear uma nova carga até que o estado possa ser confirmado.
+A failure while checking for pending processing must use conservative behavior: new uploads remain blocked until the state can be confirmed.
 
-## 7. Critérios de aceitação selecionados
+## 7. Selected acceptance criteria
 
-- Existindo carga pendente, novo upload deve permanecer bloqueado.
-- Não existindo carga pendente, o usuário pode iniciar nova carga.
-- A existência de pendência deve ser revalidada no backend no momento do upload.
-- Dois usuários não devem conseguir iniciar cargas concorrentes válidas.
-- Falha na consulta do estado deve bloquear o carregamento.
-- O acompanhamento deve apresentar total, pendentes, sucessos e erros.
-- O progresso deve ser atualizado durante a execução.
-- Erro em um item não deve interromper automaticamente os demais.
-- A carga termina apenas quando não houver itens pendentes ou em processamento.
-- Fechar a interface, quando permitido, não deve cancelar o processamento do backend.
-- A exportação deve apresentar o resultado individual de cada item da carga selecionada.
+- If a pending batch exists, new uploads must remain blocked.
+- If no pending batch exists, the user may start a new batch.
+- Pending state must be revalidated in the backend at upload time.
+- Two users must not be able to start valid concurrent batches.
+- Failure to query the current state must block the upload.
+- Progress tracking must show total, pending, successful, and failed items.
+- Progress values must update during execution.
+- Error in one item must not automatically stop the remaining items.
+- The batch completes only when no item is pending or processing.
+- Closing the interface, when allowed, must not cancel backend processing.
+- The export must show the individual result of each item in the selected batch.
 
-## 8. Decisões e trade-offs
+## 8. Decisions and trade-offs
 
-**Fail closed:** em operações que podem gerar duplicidade, indisponibilidade da verificação deve resultar em bloqueio, não em liberação otimista.
+**Fail closed:** in operations where duplication is a risk, inability to verify state results in blocking instead of optimistic release.
 
-**Revalidação no momento da escrita:** resolve a janela entre a consulta inicial da tela e a ação posterior do usuário.
+**Revalidation at write time:** addresses the window between the initial UI check and the user's later action.
 
-**Processamento desacoplado da modal:** a interface acompanha a execução; ela não é a própria execução.
+**Processing decoupled from the modal:** the interface observes the execution; it is not the execution itself.
 
-**Falha individual não implica falha global:** favorece processamento parcial e aumenta a capacidade de diagnóstico posterior.
+**Individual failure does not imply global failure:** supports partial processing and improves later diagnostics.
 
-## 9. Competências demonstradas
+## 9. Skills demonstrated
 
-- análise de condições de corrida;
-- requisitos de concorrência;
-- processamento assíncrono em lote;
-- fail-safe/fail-closed;
-- acompanhamento de progresso;
-- tolerância a falhas parciais;
-- rastreabilidade por item;
-- requisitos funcionais com implicações de backend.
+- race-condition analysis;
+- concurrency requirements;
+- asynchronous batch processing;
+- fail-safe/fail-closed behavior;
+- progress tracking;
+- partial-failure tolerance;
+- item-level traceability;
+- functional requirements with backend implications.
