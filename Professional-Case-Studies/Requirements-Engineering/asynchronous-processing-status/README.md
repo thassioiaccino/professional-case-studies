@@ -1,84 +1,84 @@
-# Case Study — Acompanhamento de Processamento Assíncrono
+# Case Study — Asynchronous Processing Status Tracking
 
-> **Nota de confidencialidade:** este case é uma versão anonimizada e abstraída de uma especificação elaborada em contexto profissional real. Nomes de sistemas, órgãos, entidades, identificadores, perfis, integrações, contratos de API, endpoints, rotas, estruturas e objetos de banco de dados, payloads, documentos, valores, códigos de situação, caminhos, dados pessoais e demais detalhes técnicos ou operacionais foram removidos, alterados ou generalizados para preservar a confidencialidade. Nenhum código, dado, contrato, estrutura física ou detalhe de infraestrutura do ambiente original é reproduzido. A lógica de análise de requisitos, os padrões de especificação, as decisões funcionais e os conceitos necessários para demonstrar a abordagem profissional foram preservados.
+> **Confidentiality note:** this case is an anonymized and abstracted version of a specification developed in a real professional context. Names of systems, organizations, entities, identifiers, roles, integrations, API contracts, endpoints, routes, database structures and objects, payloads, documents, values, status codes, paths, personal data, and other technical or operational details were removed, changed, or generalized to preserve confidentiality. No code, data, contract, physical structure, or infrastructure detail from the original environment is reproduced. The requirements analysis logic, specification patterns, functional decisions, and concepts required to demonstrate the professional approach were preserved.
 
-## 1. Problema
+## 1. Problem
 
-Uma aplicação envia solicitações a uma plataforma externa cujo aceite inicial não representa conclusão. Cada solicitação recebe um identificador e evolui de forma assíncrona por diferentes estados. Era necessário especificar como consultar essa evolução, persistir o último estado conhecido, preservar histórico e evitar chamadas desnecessárias depois da conclusão.
+An application sends requests to an external platform where the initial acceptance does not mean completion. Each request receives an identifier and evolves asynchronously through multiple states. The requirement was to define how to query that evolution, persist the latest known state, preserve history, and avoid unnecessary calls after completion.
 
-## 2. História de usuário
+## 2. User story
 
-**COMO** usuário responsável pelo acompanhamento das solicitações  
-**QUERO** consultar o processamento das operações previamente enviadas  
-**PARA** manter o estado local atualizado e acompanhar sua conclusão com rastreabilidade.
+**AS** a user responsible for tracking requests  
+**I WANT** to query the processing status of previously submitted operations  
+**SO THAT** the local state remains current and completion can be tracked with traceability.
 
-## 3. Separação de responsabilidades
+## 3. Separation of responsibilities
 
-| Ação | Origem | Objetivo |
+| Action | Source | Purpose |
 |---|---|---|
-| Pesquisar | Base local | Montar a lista de solicitações acompanháveis |
-| Consultar processamento | Serviço externo | Obter a situação mais recente de uma solicitação |
+| Search | Local database | Build the list of trackable requests |
+| Query processing | External service | Obtain the latest status of a request |
 
-A pesquisa local não deve provocar chamadas externas. A consulta externa só deve ocorrer mediante ação específica e para registros elegíveis.
+A local search must not trigger external calls. External processing queries should occur only through a specific action and for eligible records.
 
-## 4. Máquina de estados
+## 4. State machine
 
-| Estado | Final? | Nova consulta? |
+| State | Final? | Query again? |
 |---|---:|---:|
-| Aguardando processamento | Não | Sim |
-| Em processamento | Não | Sim |
-| Processado com sucesso | Sim | Não |
-| Processado parcialmente | Sim | Não, salvo reconciliação |
-| Processado com erro | Sim | Não automaticamente |
+| Waiting for processing | No | Yes |
+| Processing | No | Yes |
+| Processed successfully | Yes | No |
+| Partially processed | Yes | No, except reconciliation |
+| Processed with error | Yes | Not automatically |
 
-## 5. Regras de negócio
+## 5. Business rules
 
-### RN01 — Identificador de correlação obrigatório
-Uma solicitação somente pode ser consultada quando possuir identificador de correlação válido.
+### BR01 — Correlation identifier required
+A request may be queried only when it has a valid correlation identifier.
 
-### RN02 — Revalidação de elegibilidade
-Antes da chamada externa, o backend deve revalidar estado, identificador e elegibilidade do registro.
+### BR02 — Eligibility revalidation
+Before the external call, the backend must revalidate the record's state, identifier, and eligibility.
 
-### RN03 — Estados não finais permanecem consultáveis
-Solicitações aguardando ou em processamento devem continuar disponíveis para consultas posteriores.
+### BR03 — Non-final states remain queryable
+Requests that are waiting or processing must remain available for later status checks.
 
-### RN04 — Estados finais não geram chamadas redundantes
-Uma solicitação já finalizada não deve consumir novamente o serviço externo em condições normais.
+### BR04 — Final states do not generate redundant calls
+A completed request should not consume the external service again under normal conditions.
 
-### RN05 — Preservação do estado anterior em falha técnica
-Timeout, indisponibilidade ou retorno inválido não devem apagar ou substituir o último estado confirmado. A falha da tentativa deve ser registrada separadamente.
+### BR05 — Preserve previous state on technical failure
+Timeout, service unavailability, or an invalid response must not erase or replace the last confirmed state. The failed attempt must be recorded separately.
 
-### RN06 — Histórico representa a solicitação, não cada consulta
-Consultas sucessivas sobre o mesmo identificador atualizam a representação histórica daquela solicitação. Não deve ser criada uma nova operação apenas porque seu status foi consultado novamente.
+### BR06 — History represents the request, not each query
+Repeated queries for the same identifier update the historical representation of that request. A new operation must not be created merely because its status was checked again.
 
-### RN07 — Estado atual e histórico devem permanecer coerentes
-Após um retorno válido, a visão corrente e o registro histórico correspondente devem refletir a mesma situação confirmada.
+### BR07 — Current state and history remain consistent
+After a valid response, the current view and the corresponding historical record must reflect the same confirmed state.
 
-### RN08 — Processamento em lote preserva resultado individual
-Quando múltiplas solicitações forem consultadas, cada retorno deve ser tratado individualmente. Falha em uma chamada não pode apagar resultados válidos das demais.
+### BR08 — Batch processing preserves individual results
+When multiple requests are checked, each result must be handled independently. Failure in one request must not discard valid results from others.
 
-### RN09 — Concorrência controlada
-Se o serviço não oferecer consulta em lote, chamadas individuais devem respeitar limites de concorrência e performance.
+### BR09 — Controlled concurrency
+If the external service does not support batch queries, individual calls must respect concurrency and performance limits.
 
-## 6. Fluxo
+## 6. Flow
 
 ```mermaid
 flowchart TD
-    A[Selecionar solicitações] --> B[Revalidar elegibilidade]
-    B --> C{Elegível?}
-    C -- Não --> D[Registrar como não consultada]
-    C -- Sim --> E{Estado já é final?}
-    E -- Sim --> F[Preservar estado sem nova chamada]
-    E -- Não --> G[Consultar serviço pelo identificador]
-    G --> H{Retorno válido?}
-    H -- Não --> I[Preservar último estado e registrar falha]
-    H -- Sim --> J{Nova situação}
-    J -- Aguardando --> K[Atualizar estado]
-    J -- Processando --> K
-    J -- Sucesso --> L[Atualizar estado final]
-    J -- Parcial --> M[Atualizar e preservar detalhes]
-    J -- Erro --> N[Atualizar e preservar erro]
-    D --> O[Consolidar resultado]
+    A[Select requests] --> B[Revalidate eligibility]
+    B --> C{Eligible?}
+    C -- No --> D[Record as not queried]
+    C -- Yes --> E{Already in final state?}
+    E -- Yes --> F[Preserve state without new call]
+    E -- No --> G[Query service by identifier]
+    G --> H{Valid response?}
+    H -- No --> I[Preserve last state and record failure]
+    H -- Yes --> J{New status}
+    J -- Waiting --> K[Update status]
+    J -- Processing --> K
+    J -- Success --> L[Update final status]
+    J -- Partial --> M[Update and preserve details]
+    J -- Error --> N[Update and preserve error]
+    D --> O[Consolidate result]
     F --> O
     I --> O
     K --> O
@@ -87,36 +87,36 @@ flowchart TD
     N --> O
 ```
 
-## 7. Critérios de aceitação selecionados
+## 7. Selected acceptance criteria
 
-- A listagem deve ser obtida da base local sem chamada ao serviço de processamento.
-- A consulta externa deve ocorrer somente para registros selecionados e elegíveis.
-- O identificador de correlação é obrigatório.
-- O backend deve revalidar a elegibilidade antes da chamada.
-- Estados não finais devem permanecer consultáveis.
-- Estados finais não devem ser consultados novamente sem motivo específico.
-- Falha de comunicação deve preservar o último estado confirmado.
-- A atualização deve manter coerência entre estado corrente e histórico.
-- Uma nova consulta do mesmo identificador não deve criar uma nova solicitação histórica.
-- Operações em lote devem produzir resumo consolidado sem perder o resultado individual.
+- The listing must be obtained from the local database without calling the processing service.
+- External queries must occur only for selected and eligible records.
+- A correlation identifier is mandatory.
+- The backend must revalidate eligibility before making the external call.
+- Non-final states must remain queryable.
+- Final states must not be queried again without a specific reason.
+- Communication failure must preserve the last confirmed state.
+- Updates must keep current state and history consistent.
+- Querying the same identifier again must not create a new historical request.
+- Batch operations must provide a consolidated summary without losing individual outcomes.
 
-## 8. Decisões e trade-offs
+## 8. Decisions and trade-offs
 
-**Polling manual/controlado em vez de consulta indiscriminada:** reduz chamadas externas e permite respeitar limites da integração.
+**Manual/controlled polling instead of indiscriminate querying:** reduces external calls and helps respect integration limits.
 
-**Não sobrescrever estado em falha:** ausência de resposta não equivale a mudança de estado. Essa distinção evita regressões de informação.
+**Do not overwrite state on failure:** no response does not mean a state change. This distinction prevents information regression.
 
-**Estados finais como condição de parada:** transforma o domínio em uma máquina de estados explícita e reduz processamento desnecessário.
+**Final states as stop conditions:** makes the domain an explicit state machine and reduces unnecessary processing.
 
-**Correlação por identificador:** mantém rastreabilidade entre envio original, consultas posteriores e resultado final.
+**Correlation by identifier:** preserves traceability between the original submission, later queries, and final outcome.
 
-## 9. Competências demonstradas
+## 9. Skills demonstrated
 
-- integração assíncrona;
-- modelagem de máquina de estados;
-- idempotência conceitual;
-- correlação de solicitações;
-- persistência de estado e histórico;
-- processamento em lote;
-- resiliência a falhas externas;
-- requisitos de performance e concorrência.
+- asynchronous integration;
+- state-machine modeling;
+- conceptual idempotency;
+- request correlation;
+- state and history persistence;
+- batch processing;
+- resilience to external failures;
+- performance and concurrency requirements.
