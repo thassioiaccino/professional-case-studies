@@ -1,78 +1,191 @@
-# Cloud Journey
+# Cloud Journey — Engineering Portfolio
 
-> **Learning by building.**
+> **Real-world systems experience, engineering case studies, and a hands-on journey toward Cloud, DevOps and Platform Engineering.**
 
-Este repositório documenta minha transição profissional da gestão de sistemas no setor público para **Cloud, DevOps e Platform Engineering**.
+This repository is my engineering portfolio.
 
-Mais do que um repositório de estudos, este projeto funciona como meu **portfólio técnico**, reunindo projetos práticos, documentação, arquiteturas, automações, decisões técnicas e aprendizados construídos ao longo da jornada.
+It combines two parts of the same professional path:
 
-## Objetivo
+1. **Professional case studies** derived from real work with critical information systems, covering requirements engineering, Oracle SQL, production incident investigation, integrations, data consistency and legacy-system modernization.
+2. **Cloud & DevOps engineering projects** built hands-on as I expand my background toward infrastructure, automation, cloud computing and platform engineering.
 
-Desenvolver uma base sólida em infraestrutura, automação, cloud computing e práticas modernas de engenharia, sempre com foco em aplicação prática e construção de projetos que demonstrem competência técnica.
+The goal is not to collect tutorials or copied labs. Every item published here should demonstrate a problem, the reasoning behind the solution, the decisions made and what I learned from it.
 
-A regra principal desta jornada é simples:
+> **Build → Understand → Document → Improve**
 
-> **Não estudar por estudar. Construir para aprender.**
+---
 
-## Roadmap
+## Professional Background
 
-- [x] AWS Fundamentals
-- [ ] Linux
-- [ ] Git e GitHub
-- [ ] Docker
-- [ ] Terraform
-- [ ] GitHub Actions e CI/CD
-- [ ] Kubernetes
-- [ ] Azure
-- [ ] Platform Engineering e SRE
+My background is in **Product Ownership, Requirements Analysis and critical-system operations**, working at the intersection of business rules, software engineering teams, databases, integrations and production operations.
 
-## Estrutura planejada
+My experience includes translating operational needs into implementable requirements, validating complex business rules, investigating production behavior with SQL and system evidence, supporting integrations between systems, leading functional regression and acceptance activities, and preserving business behavior during legacy-system modernization.
+
+I am now extending that foundation into **Cloud, DevOps and Platform Engineering**, with an initial focus on AWS, Linux, Git/GitHub, containers, Infrastructure as Code, CI/CD, Kubernetes and reliability practices.
+
+This portfolio is intentionally designed to show that progression rather than present the Cloud journey as a career starting from zero.
+
+---
+
+## Featured Professional Case Studies
+
+The case studies below are **anonymized and abstracted from real professional situations**. Confidential system names, internal endpoints, database objects, production data, infrastructure details and other sensitive information are not reproduced.
+
+### 1. Legacy System Modernization — Functional Governance
+
+A case study about preserving business behavior during a major technology modernization of a critical legacy application.
+
+Highlights:
+- functional baseline reconstruction in an environment without consolidated documentation;
+- legacy vs. modernized environment comparison;
+- business-rule clarification for developers;
+- regression testing and functional acceptance;
+- defect classification and prioritization;
+- functional go/no-go participation;
+- post-production monitoring and regression identification.
+
+[Read the case study →](Professional-Case-Studies/System-Modernization/legacy-system-modernization-functional-governance/README.md)  
+[Versão em Português →](Professional-Case-Studies/System-Modernization/legacy-system-modernization-functional-governance/README.pt.md)
+
+### 2. Production Incident — Cross-System Transaction Reconciliation
+
+A production incident in which an operation succeeded on an external financial platform while the corresponding local state was not correctly persisted after a system migration.
+
+Highlights:
+- incident detection during real operation;
+- verification of external system state before retrying;
+- database-driven investigation;
+- cross-system consistency reasoning;
+- controlled production data reconciliation;
+- validation after recovery;
+- separation between operational recovery and permanent application correction.
+
+[Read the case study →](Professional-Case-Studies/Operations-Incident-Management/distributed-transaction-reconciliation/README.md)  
+[Versão em Português →](Professional-Case-Studies/Operations-Incident-Management/distributed-transaction-reconciliation/README.pt.md)
+
+### 3. Requirements Engineering — Stateful Synchronization Workflow
+
+A complete requirements-engineering case involving synchronization between an external source and a stateful local application.
+
+Highlights:
+- scope and boundary definition;
+- conditional uniqueness rules;
+- new / unchanged / changed record classification;
+- state-transition rules;
+- backend revalidation;
+- auditability;
+- batch processing;
+- exception handling;
+- acceptance criteria and decision flows.
+
+[Read the case study →](Professional-Case-Studies/Requirements-Engineering/stateful-synchronization-workflow/README.md)  
+[Versão em Português →](Professional-Case-Studies/Requirements-Engineering/stateful-synchronization-workflow/README.pt.md)
+
+### 4. Oracle SQL — Legacy Materialized View Refactoring
+
+A database case focused on evolving a legacy analytical structure while supporting current and historical relationship models.
+
+Highlights:
+- Oracle SQL;
+- materialized views;
+- CTEs and complex joins;
+- historical relationship reconstruction;
+- one-to-many consolidation;
+- `LISTAGG`, aggregation and conditional logic;
+- duplicate-control reasoning.
+
+[Read the case study →](Professional-Case-Studies/SQL-Database/legacy-materialized-view-refactoring/README.md)  
+[Versão em Português →](Professional-Case-Studies/SQL-Database/legacy-materialized-view-refactoring/README.pt.md)
+
+### 5. Oracle SQL — Financial Monitoring Analytical Dataset
+
+Evolution of an analytical dataset used to support financial monitoring and business analysis.
+
+Highlights:
+- discovery of new data relationships from business needs;
+- Oracle SQL across multiple relational sources;
+- historical/current data-model handling;
+- `ROW_NUMBER`, `LISTAGG`, `UNION ALL`, aggregation and deduplication;
+- translating operational questions into analytical data structures.
+
+[Read the case study →](Professional-Case-Studies/SQL-Database/financial-monitoring-analytical-dataset/README.md)  
+[Versão em Português →](Professional-Case-Studies/SQL-Database/financial-monitoring-analytical-dataset/README.pt.md)
+
+Additional requirements-engineering cases are available under [`Professional-Case-Studies/Requirements-Engineering`](Professional-Case-Studies/Requirements-Engineering/).
+
+---
+
+## Cloud & DevOps Journey
+
+The second pillar of this repository is a structured transition toward Cloud and Platform Engineering through hands-on projects.
+
+The roadmap is deliberately sequential: foundations first, automation and orchestration later.
+
+| Stage | Status | Focus |
+|---|---|---|
+| AWS Fundamentals | Completed | Core cloud concepts and AWS foundations |
+| Linux Fundamentals | Completed | OS, filesystem, permissions, users, packages, services, networking and SSH |
+| Linux Practical Project | In progress | Provisioning and administering a Linux server from scratch |
+| Git & GitHub | Planned | Version control and engineering workflows |
+| Docker | Planned | Containers and application packaging |
+| Terraform | Planned | Infrastructure as Code |
+| GitHub Actions / CI/CD | Planned | Build and delivery automation |
+| Kubernetes | Planned | Container orchestration |
+| Azure | Planned | Multi-cloud infrastructure knowledge |
+| Platform Engineering / SRE | Long-term direction | Reliability, platforms, automation and developer experience |
+
+See the detailed [`ROADMAP.md`](ROADMAP.md).
+
+---
+
+## Current Hands-on Project
+
+### Project 001 — Linux Server: Provisioning & Administration
+
+A clean virtual machine is being provisioned from scratch as a realistic infrastructure exercise rather than a command-by-command tutorial.
+
+The project covers operating-system installation, identity and access design, filesystem permissions, package management, web-service deployment, service/process administration, networking, SSH, logs and a mandatory controlled incident with investigation and recovery.
+
+The project will only be published as a completed portfolio artifact after technical review and validation of the decisions taken during implementation.
+
+---
+
+## Repository Structure
 
 ```text
 cloud-journey/
-├── 01-aws/
-├── 02-linux/
-├── 03-git-github/
-├── 04-docker/
-├── 05-terraform/
-├── 06-cicd/
-├── 07-kubernetes/
-├── 08-azure/
-├── 09-projects/
-├── architecture/
-├── certificates/
-└── interview-notes/
+├── Professional-Case-Studies/
+│   ├── Requirements-Engineering/
+│   ├── SQL-Database/
+│   ├── Operations-Incident-Management/
+│   └── System-Modernization/
+├── docs/
+├── README.md
+└── ROADMAP.md
 ```
 
-## Padrão dos projetos
+New Cloud/DevOps project directories will be added as practical work is completed. The repository structure follows the portfolio that actually exists rather than reserving empty folders for future technologies.
 
-Cada projeto publicado deverá conter, sempre que aplicável:
+---
 
-- objetivo;
-- problema resolvido;
-- tecnologias e serviços utilizados;
-- arquitetura;
-- passo a passo;
-- decisões técnicas;
-- aprendizados;
-- limitações;
-- possíveis melhorias.
+## Engineering Principles
 
-## Critérios para publicação
+**Evidence over claims.** Skills should be demonstrated through decisions, artifacts and working projects.
 
-Um conteúdo só entra neste portfólio quando atende a pelo menos um destes critérios:
+**Understand before publishing.** Course exercises and copied labs are training material, not portfolio projects unless they are substantially adapted and understood.
 
-- demonstra uma habilidade relevante para o mercado;
-- apresenta a solução de um problema real;
-- evidencia compreensão técnica;
-- registra uma evolução profissional relevante.
+**Business and technology belong together.** Technical solutions are more valuable when the underlying operational problem and constraints are understood.
 
-Exercícios copiados de cursos, sem adaptação ou entendimento demonstrável, não fazem parte deste portfólio.
+**Documentation is an engineering artifact.** Requirements, architecture decisions, troubleshooting evidence and operational knowledge are part of the solution.
 
-## Filosofia de evolução
+**Failures are learning material.** Incidents and mistakes are documented through symptom → investigation → hypothesis → correction → validation.
 
-```text
-Build → Learn → Improve → Repeat
-```
+**Confidentiality by design.** Professional case studies are anonymized and recreated to demonstrate reasoning without exposing internal systems, data, code or infrastructure.
 
-Este repositório será atualizado continuamente conforme novos conhecimentos forem transformados em projetos reais.
+---
+
+## What Comes Next
+
+The immediate focus is completing and technically reviewing **Project 001 — Linux Server**. From there, the journey advances through Git/GitHub, Docker, Terraform, CI/CD and Kubernetes, progressively combining them into larger infrastructure and platform-engineering projects.
+
+This repository will evolve with that progression — but only when new knowledge becomes something I can explain, build, troubleshoot and defend technically.
