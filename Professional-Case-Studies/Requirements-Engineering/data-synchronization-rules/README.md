@@ -1,106 +1,106 @@
-# Case Study — Sincronização de Dados com Regras de Estado e Unicidade
+# Case Study — Data Synchronization with State and Uniqueness Rules
 
-> **Nota de confidencialidade:** este case é uma versão anonimizada e abstraída de uma especificação elaborada em contexto profissional real. Nomes de sistemas, órgãos, entidades, identificadores, perfis, integrações, contratos de API, endpoints, rotas, estruturas e objetos de banco de dados, payloads, documentos, valores, códigos de situação, caminhos, dados pessoais e demais detalhes técnicos ou operacionais foram removidos, alterados ou generalizados para preservar a confidencialidade. Nenhum código, dado, contrato, estrutura física ou detalhe de infraestrutura do ambiente original é reproduzido. A lógica de análise de requisitos, os padrões de especificação, as decisões funcionais e os conceitos necessários para demonstrar a abordagem profissional foram preservados.
+> **Confidentiality note:** this case is an anonymized and abstracted version of a specification developed in a real professional context. Names of systems, organizations, entities, identifiers, roles, integrations, API contracts, endpoints, routes, database structures and objects, payloads, documents, values, status codes, paths, personal data, and other technical or operational details were removed, changed, or generalized to preserve confidentiality. No code, data, contract, physical structure, or infrastructure detail from the original environment is reproduced. The requirements analysis logic, specification patterns, functional decisions, and concepts required to demonstrate the professional approach were preserved.
 
-## 1. Problema
+## 1. Problem
 
-Uma aplicação corporativa precisava consumir registros de um serviço de origem e manter uma base local sincronizada. O desafio não era simplesmente inserir o retorno: cada registro precisava ser classificado como novo, existente sem alteração ou existente com alteração, considerando ainda se já havia sido enviado para uma plataforma externa.
+A corporate application needed to consume records from a source service and keep a local database synchronized. The challenge was not simply inserting the response: each record had to be classified as new, existing without changes, or existing with changes, while also considering whether it had already been sent to an external platform.
 
-## 2. História de usuário
+## 2. User story
 
-**COMO** usuário responsável pela gestão dos registros  
-**QUERO** consultar, selecionar, gravar e atualizar os registros recebidos de um serviço de origem  
-**PARA** manter a base local sincronizada e preparar corretamente cada registro para as etapas posteriores do fluxo.
+**AS** a user responsible for managing the records  
+**I WANT** to query, select, create, and update records received from a source service  
+**SO THAT** the local database remains synchronized and each record is correctly prepared for later workflow stages.
 
-## 3. Estados funcionais
+## 3. Functional states
 
-A análise separou os registros em quatro situações conceituais:
+The analysis separated records into four conceptual situations:
 
-| Situação | Tratamento |
+| Situation | Treatment |
 |---|---|
-| Novo | Inserir e disponibilizar para envio |
-| Existente sem alteração | Não realizar escrita desnecessária |
-| Alterado e ainda não enviado | Atualizar mantendo-o pendente de primeiro envio |
-| Alterado após envio | Atualizar e marcar alteração pendente de sincronização externa |
+| New | Insert and make available for sending |
+| Existing without changes | Avoid unnecessary writes |
+| Changed and not yet sent | Update while keeping it pending for first send |
+| Changed after sending | Update and mark as pending external synchronization |
 
-## 4. Regras centrais
+## 4. Core business rules
 
-### RN01 — Identificação antes da persistência
-Todo registro retornado deve ser comparado com a base local antes de qualquer inclusão ou atualização.
+### BR01 — Identify before persistence
+Every returned record must be compared with the local database before any insert or update occurs.
 
-### RN02 — Unicidade dependente da categoria
-A chave funcional pode variar conforme a categoria do registro. Em uma categoria simples, a identificação pode utilizar `ENTIDADE + REFERÊNCIA + CLASSIFICAÇÃO`; em uma categoria que admite múltiplos participantes, acrescenta-se `PARTICIPANTE` à combinação.
+### BR02 — Category-dependent uniqueness
+The functional key may vary according to the record category. A simple category may use `ENTITY + REFERENCE + CLASSIFICATION`; a category that allows multiple participants adds `PARTICIPANT` to that combination.
 
-### RN03 — Nenhuma escrita sem mudança
-Quando um registro existente não apresentar divergência relevante, não deve ocorrer INSERT, UPDATE, alteração de estado ou atualização artificial de auditoria.
+### BR03 — No write without change
+When an existing record has no relevant divergence, there must be no INSERT, UPDATE, state change, or artificial audit update.
 
-### RN04 — Alteração antes do primeiro envio
-Se o dado mudar antes de ter sido enviado externamente, a base local é atualizada, mas o registro continua no fluxo de primeiro envio.
+### BR04 — Change before first send
+If the data changes before being sent externally, the local record is updated but remains in the first-send workflow.
 
-### RN05 — Alteração após envio
-Se o dado mudar depois de já ter sido enviado, a atualização local deve gerar um estado explícito de alteração pendente.
+### BR05 — Change after sending
+If the data changes after the record has already been sent, the local update must create an explicit pending-change state.
 
-### RN06 — Revalidação no backend
-A classificação exibida ao usuário não é suficiente para persistir. Antes da gravação, o backend deve revalidar unicidade, estado e elegibilidade, evitando decisões baseadas em informação que possa ter ficado desatualizada entre consulta e ação.
+### BR06 — Backend revalidation
+The classification displayed to the user is not sufficient for persistence. Before writing, the backend must revalidate uniqueness, state, and eligibility to avoid decisions based on stale information.
 
-### RN07 — Processamento independente
-Uma inconsistência em determinado item não deve necessariamente impedir o tratamento dos demais registros válidos do lote. O resultado deve ser consolidado por item.
+### BR07 — Independent item processing
+An inconsistency in one item should not necessarily prevent valid records in the same batch from being processed. Results must be consolidated per item.
 
-### RN08 — Auditoria somente quando houver alteração
-Dados de auditoria devem representar eventos reais de inclusão ou alteração, e não simples consultas ou comparações sem mudança.
+### BR08 — Audit only on actual change
+Audit information must represent real insert or update events, not queries or comparisons that did not change persisted data.
 
-## 5. Fluxo decisório
+## 5. Decision flow
 
 ```mermaid
 flowchart TD
-    A[Consultar serviço de origem] --> B{Retorno válido?}
-    B -- Não --> C[Não persistir e informar falha]
-    B -- Sim --> D[Comparar registros com base local]
-    D --> E{Registro existe?}
-    E -- Não --> F[Classificar como novo]
-    E -- Sim --> G{Existe alteração relevante?}
-    G -- Não --> H[Manter registro sem escrita]
-    G -- Sim --> I{Já foi enviado externamente?}
-    I -- Não --> J[Atualizar e manter pendente de envio]
-    I -- Sim --> K[Atualizar e marcar alteração pendente]
-    F --> L[Revalidar no backend]
+    A[Query source service] --> B{Valid response?}
+    B -- No --> C[Do not persist and report failure]
+    B -- Yes --> D[Compare records with local database]
+    D --> E{Record exists?}
+    E -- No --> F[Classify as new]
+    E -- Yes --> G{Relevant change exists?}
+    G -- No --> H[Keep record without write]
+    G -- Yes --> I{Already sent externally?}
+    I -- No --> J[Update and keep pending first send]
+    I -- Yes --> K[Update and mark pending change]
+    F --> L[Revalidate in backend]
     J --> L
     K --> L
-    L --> M[Persistir somente itens ainda elegíveis]
-    H --> N[Preservar estado atual]
-    M --> O[Consolidar resultado]
+    L --> M[Persist only still-eligible items]
+    H --> N[Preserve current state]
+    M --> O[Consolidate result]
     N --> O
 ```
 
-## 6. Critérios de aceitação selecionados
+## 6. Selected acceptance criteria
 
-- Consulta deve utilizar somente os parâmetros previstos para o cenário.
-- Todos os registros retornados devem ser classificados antes da montagem do resultado.
-- Registros novos devem ser identificados conforme a regra de unicidade aplicável.
-- Registro existente sem alteração não deve sofrer escrita nem alteração de auditoria.
-- Registro alterado antes do primeiro envio deve continuar elegível para o fluxo inicial.
-- Registro alterado após envio deve ser marcado para sincronização posterior.
-- O backend deve revalidar o estado antes da persistência.
-- Itens inválidos devem ser identificados individualmente no resultado consolidado.
-- Inclusões e atualizações devem possuir rastreabilidade de data e responsável.
+- The query must use only the parameters defined for the scenario.
+- All returned records must be classified before the result is assembled.
+- New records must be identified according to the applicable uniqueness rule.
+- Existing unchanged records must not generate writes or audit updates.
+- A record changed before first send must remain eligible for the initial flow.
+- A record changed after sending must be marked for later synchronization.
+- The backend must revalidate state before persistence.
+- Invalid items must be individually identified in the consolidated result.
+- Inserts and updates must preserve traceability of date and responsible user.
 
-## 7. Decisões e trade-offs
+## 7. Decisions and trade-offs
 
-**Evitar UPDATE desnecessário:** preserva a qualidade da auditoria e reduz escrita sem significado funcional.
+**Avoid unnecessary UPDATEs:** preserves audit quality and reduces writes with no functional meaning.
 
-**Estado local separado do estado externo:** permite distinguir claramente um registro nunca enviado de outro já sincronizado que sofreu alteração posterior.
+**Separate local state from external state:** clearly distinguishes a record never sent from one already synchronized and later changed.
 
-**Unicidade por regra funcional:** a chave não é assumida apenas pela estrutura técnica; ela deriva do comportamento de cada categoria de negócio.
+**Functional uniqueness:** the key is not assumed purely from the technical structure; it is derived from the behavior of each business category.
 
-**Revalidação transacional:** a interface auxilia a decisão, mas o backend continua sendo a autoridade final antes da persistência.
+**Transactional revalidation:** the interface assists the decision, but the backend remains the final authority before persistence.
 
-## 8. Competências demonstradas
+## 8. Skills demonstrated
 
-- modelagem de estados e transições;
-- definição de regras de unicidade;
-- sincronização entre fontes de dados;
-- prevenção de atualizações desnecessárias;
-- requisitos de auditoria;
-- processamento em lote;
-- tratamento de exceções;
-- critérios de aceitação orientados ao comportamento do backend.
+- state and transition modeling;
+- uniqueness-rule definition;
+- synchronization across data sources;
+- prevention of unnecessary updates;
+- audit requirements;
+- batch processing;
+- exception handling;
+- acceptance criteria focused on backend behavior.
