@@ -209,7 +209,17 @@ A evolução permitiu que a consulta:
 - recuperasse informação funcional necessária que havia deixado de ser retornada;
 - deixasse a separação entre regras atuais e legadas mais explícita para manutenção futura.
 
-## 9. Competências demonstradas
+## 9. Impacto e referência pública
+
+As informações consolidadas por esta camada de dados integram o fluxo de disponibilização de informações utilizadas em **painéis públicos de acompanhamento de saldos e repasses governamentais**. Nesse contexto, consistência de relacionamentos, eliminação de duplicidades e consolidação correta dos saldos são especialmente relevantes, pois inconsistências nessa camada podem se propagar para produtos de informação destinados ao acompanhamento e à transparência pública.
+
+O produto público relacionado a esse contexto de negócio pode ser consultado no **Painel Saldos**, disponibilizado no portal de painéis do Ministério do Desenvolvimento e Assistência Social, Família e Combate à Fome (MDS):
+
+**Painel público:** https://paineis.mds.gov.br/public/extensions/RFF/saldos.html
+
+O link acima é apresentado apenas como **referência pública do contexto e do produto de informação**. Este case não documenta nem expõe a arquitetura interna, o fluxo técnico de publicação ou os componentes intermediários existentes entre a camada de dados e o painel.
+
+## 10. Competências demonstradas
 
 - Oracle SQL;
 - manutenção de código legado;
@@ -223,9 +233,10 @@ A evolução permitiu que a consulta:
 - normalização de dados para relacionamento;
 - tratamento de modelos históricos distintos;
 - refatoração orientada à regra de negócio;
-- análise de impacto em consultas consolidadas.
+- análise de impacto em consultas consolidadas;
+- qualidade e consistência de dados destinados a produtos de informação pública.
 
-## 10. Autoria e transparência
+## 11. Autoria e transparência
 
 A Materialized View que originou este estudo já fazia parte de uma solução existente e foi originalmente desenvolvida por outros profissionais. Este case **não reivindica autoria sobre o objeto original**.
 
