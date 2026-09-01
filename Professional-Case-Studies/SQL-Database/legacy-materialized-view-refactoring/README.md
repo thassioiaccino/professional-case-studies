@@ -209,7 +209,17 @@ The evolution enabled the query to:
 - restore functional information that had stopped being returned;
 - make the separation between current and legacy rules more explicit for future maintenance.
 
-## 9. Skills demonstrated
+## 9. Impact and public reference
+
+The information consolidated by this data layer is part of the information flow used by **public dashboards for monitoring government balances and transfers**. In this context, relationship consistency, duplicate elimination, and correct balance consolidation are particularly relevant because inconsistencies at this layer may propagate to information products intended for public monitoring and transparency.
+
+A public product related to this business context is the **Saldos Dashboard**, available through the dashboard portal of Brazil's Ministry of Development and Social Assistance, Family and Fight Against Hunger (MDS):
+
+**Public dashboard:** https://paineis.mds.gov.br/public/extensions/RFF/saldos.html
+
+The link above is provided solely as a **public reference for the business context and information product**. This case study does not document or expose the internal architecture, technical publication flow, or intermediate components between the data layer and the dashboard.
+
+## 10. Skills demonstrated
 
 - Oracle SQL;
 - legacy code maintenance;
@@ -223,9 +233,10 @@ The evolution enabled the query to:
 - data normalization for relational matching;
 - handling different historical data models;
 - business-rule-driven refactoring;
-- impact analysis in consolidated queries.
+- impact analysis in consolidated queries;
+- data quality and consistency for public information products.
 
-## 10. Authorship and transparency
+## 11. Authorship and transparency
 
 The Materialized View that originated this study was already part of an existing solution and was originally developed by other professionals. This case study **does not claim authorship of the original object**.
 
