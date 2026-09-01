@@ -1,6 +1,6 @@
 # Case Study — Acompanhamento de Processamento Assíncrono
 
-> **Confidencialidade:** versão pública e abstraída de uma especificação elaborada em contexto profissional real. Nomes de sistemas, contratos de API, UUIDs, estruturas de banco e regras específicas do domínio foram substituídos por conceitos genéricos.
+> **Nota de confidencialidade:** este case é uma versão anonimizada e abstraída de uma especificação elaborada em contexto profissional real. Nomes de sistemas, órgãos, entidades, identificadores, perfis, integrações, contratos de API, endpoints, rotas, estruturas e objetos de banco de dados, payloads, documentos, valores, códigos de situação, caminhos, dados pessoais e demais detalhes técnicos ou operacionais foram removidos, alterados ou generalizados para preservar a confidencialidade. Nenhum código, dado, contrato, estrutura física ou detalhe de infraestrutura do ambiente original é reproduzido. A lógica de análise de requisitos, os padrões de especificação, as decisões funcionais e os conceitos necessários para demonstrar a abordagem profissional foram preservados.
 
 ## 1. Problema
 
