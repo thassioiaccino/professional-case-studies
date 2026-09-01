@@ -1,6 +1,6 @@
 # Case Study — Controle de Concorrência em Processamento de Arquivos
 
-> **Confidencialidade:** este case foi recriado a partir de uma necessidade profissional real. Nomes de sistema, rotas, estruturas de banco, identificadores de usuários e demais detalhes internos foram removidos ou generalizados.
+> **Nota de confidencialidade:** este case é uma versão anonimizada e abstraída de uma especificação elaborada em contexto profissional real. Nomes de sistemas, órgãos, entidades, identificadores, perfis, integrações, contratos de API, endpoints, rotas, estruturas e objetos de banco de dados, payloads, documentos, valores, códigos de situação, caminhos, dados pessoais e demais detalhes técnicos ou operacionais foram removidos, alterados ou generalizados para preservar a confidencialidade. Nenhum código, dado, contrato, estrutura física ou detalhe de infraestrutura do ambiente original é reproduzido. A lógica de análise de requisitos, os padrões de especificação, as decisões funcionais e os conceitos necessários para demonstrar a abordagem profissional foram preservados.
 
 ## 1. Problema
 
