@@ -1,17 +1,14 @@
 # Cloud Journey — Engineering Portfolio
 
-> **Real-world systems experience, engineering case studies, and a hands-on journey toward Cloud, DevOps and Platform Engineering.**
+> **Real-world systems experience, engineering case studies, and hands-on projects across software, data, operations and infrastructure.**
 
-This repository is my engineering portfolio.
+This repository is my **public engineering portfolio**.
 
-It combines two parts of the same professional path:
+It brings together selected artifacts that demonstrate how I work across requirements engineering, Oracle SQL, production incident investigation, integrations, data consistency, legacy-system modernization and, as they reach publication quality, Cloud/DevOps engineering projects.
 
-1. **Professional case studies** derived from real work with critical information systems, covering requirements engineering, Oracle SQL, production incident investigation, integrations, data consistency and legacy-system modernization.
-2. **Cloud & DevOps engineering projects** built hands-on as I expand my background toward infrastructure, automation, cloud computing and platform engineering.
+The goal is not to collect tutorials, course exercises or unfinished labs. Every item published here should demonstrate a real problem or meaningful technical challenge, the reasoning behind the solution, the decisions made, validation and what I learned from it.
 
-The goal is not to collect tutorials or copied labs. Every item published here should demonstrate a problem, the reasoning behind the solution, the decisions made and what I learned from it.
-
-> **Build → Understand → Document → Improve**
+> **Build → Understand → Review → Document → Publish**
 
 ---
 
@@ -21,9 +18,9 @@ My background is in **Product Ownership, Requirements Analysis and critical-syst
 
 My experience includes translating operational needs into implementable requirements, validating complex business rules, investigating production behavior with SQL and system evidence, supporting integrations between systems, leading functional regression and acceptance activities, and preserving business behavior during legacy-system modernization.
 
-I am now extending that foundation into **Cloud, DevOps and Platform Engineering**, with an initial focus on AWS, Linux, Git/GitHub, containers, Infrastructure as Code, CI/CD, Kubernetes and reliability practices.
+I am extending that foundation into **Cloud, DevOps and Platform Engineering**, adding infrastructure, automation and reliability practices to an existing background in critical systems and production-oriented problem solving.
 
-This portfolio is intentionally designed to show that progression rather than present the Cloud journey as a career starting from zero.
+This portfolio is intentionally designed to show that progression rather than present the engineering journey as a career starting from zero.
 
 ---
 
@@ -115,38 +112,13 @@ Additional requirements-engineering cases are available under [`Professional-Cas
 
 ---
 
-## Cloud & DevOps Journey
+## Portfolio Publication Model
 
-The second pillar of this repository is a structured transition toward Cloud and Platform Engineering through hands-on projects.
+This repository contains **reviewed public artifacts**, not the operational backlog behind them.
 
-The roadmap is deliberately sequential: foundations first, automation and orchestration later.
+Study notes, experiments, unfinished projects, raw troubleshooting trails and project planning remain outside the public portfolio. When a technical project reaches a point where I can reproduce it, explain its decisions, troubleshoot it and defend the implementation, it is curated and published here as a finished engineering artifact.
 
-| Stage | Status | Focus |
-|---|---|---|
-| AWS Fundamentals | Completed | Core cloud concepts and AWS foundations |
-| Linux Fundamentals | Completed | OS, filesystem, permissions, users, packages, services, networking and SSH |
-| Linux Practical Project | In progress | Provisioning and administering a Linux server from scratch |
-| Git & GitHub | Planned | Version control and engineering workflows |
-| Docker | Planned | Containers and application packaging |
-| Terraform | Planned | Infrastructure as Code |
-| GitHub Actions / CI/CD | Planned | Build and delivery automation |
-| Kubernetes | Planned | Container orchestration |
-| Azure | Planned | Multi-cloud infrastructure knowledge |
-| Platform Engineering / SRE | Long-term direction | Reliability, platforms, automation and developer experience |
-
-See the detailed [`ROADMAP.md`](ROADMAP.md).
-
----
-
-## Current Hands-on Project
-
-### Project 001 — Linux Server: Provisioning & Administration
-
-A clean virtual machine is being provisioned from scratch as a realistic infrastructure exercise rather than a command-by-command tutorial.
-
-The project covers operating-system installation, identity and access design, filesystem permissions, package management, web-service deployment, service/process administration, networking, SSH, logs and a mandatory controlled incident with investigation and recovery.
-
-The project will only be published as a completed portfolio artifact after technical review and validation of the decisions taken during implementation.
+This keeps the portfolio focused on **evidence of capability rather than promises of future capability**.
 
 ---
 
@@ -159,12 +131,10 @@ cloud-journey/
 │   ├── SQL-Database/
 │   ├── Operations-Incident-Management/
 │   └── System-Modernization/
-├── docs/
-├── README.md
-└── ROADMAP.md
+└── README.md
 ```
 
-New Cloud/DevOps project directories will be added as practical work is completed. The repository structure follows the portfolio that actually exists rather than reserving empty folders for future technologies.
+New categories and project directories are added only when there is a reviewed artifact ready to publish.
 
 ---
 
@@ -184,8 +154,6 @@ New Cloud/DevOps project directories will be added as practical work is complete
 
 ---
 
-## What Comes Next
+## Portfolio Direction
 
-The immediate focus is completing and technically reviewing **Project 001 — Linux Server**. From there, the journey advances through Git/GitHub, Docker, Terraform, CI/CD and Kubernetes, progressively combining them into larger infrastructure and platform-engineering projects.
-
-This repository will evolve with that progression — but only when new knowledge becomes something I can explain, build, troubleshoot and defend technically.
+The portfolio will continue to grow with reviewed professional cases and completed hands-on engineering projects. Publication happens only when new knowledge becomes something I can **explain, build, troubleshoot and defend technically**.
